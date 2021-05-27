@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: litecoin-cluster
+spec:
+  serviceName: litecoin-cluster
+  replicas: 3
+  selector:
+    matchLabels:
+      app: litecoin-cluster
+  template:
+    metadata:
+      labels:
+        app: litecoin-cluster
+    spec:
+      containers:
+        - name: litecoin
+          image: eu.gcr.io/hello-marco-k8s/my_litecoin:latest
+          ports:
+            - containerPort: 9332
+            - containerPort: 9333
+            - containerPort: 19332
+            - containerPort: 19333
+            - containerPort: 19444
+          command: ["litecoind"]
+          env:
+            - name: DATADIR
+              value: "/data/litecoin"
+          volumeMounts:
+          - name: litecoin-data
+            mountPath: /data
+            readOnly: false
+  volumeClaimTemplates:
+    - metadata:
+        name: litecoin-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi

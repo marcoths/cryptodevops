@@ -13,7 +13,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout working branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@master
       
       - name: Set Docker Registry
         run: echo "registry=eu.gcr.io" >> $GITHUB_ENV
@@ -23,27 +23,24 @@ jobs:
       
       - name: Login to gcloud
         id: gcloud
-        uses: elgohr/gcloud-login-action@0.2
+        uses: elgohr/gcloud-login-action@master
         with:
           account_key: ${{ secrets.GCLOUD_KEY }}
       
       - name: Publish Image
-        uses: elgohr/Publish-Docker-Github-Action@2.14
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: ${{ env.image }}
           username: ${{ steps.gcloud.outputs.username }}
           password: ${{ steps.gcloud.outputs.password }}
           registry: ${{ env.registry }}
-          buildargs: SSH_PRIVATE_KEY
   deployment:
     name: Deploy image to cluster
     runs-on: ubuntu-latest
     needs: [build]
     steps:
       - name: Checkout  working branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@master
       
       - name: Set Cluster Credentials
         run: |

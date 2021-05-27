@@ -1,0 +1,66 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. 
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout working branch
+        uses: actions/checkout@master
+      
+      - name: Set Docker Registry
+        run: echo "registry=eu.gcr.io" >> $GITHUB_ENV
+      
+      - name: Set Docker image
+        run: echo "image=${{ env.registry }}/hello-marco-k8s/my_litecoin" >> $GITHUB_ENV
+      
+      - name: Login to gcloud
+        id: gcloud
+        uses: elgohr/gcloud-login-action@master
+        with:
+          account_key: ${{ secrets.GCLOUD_KEY }}
+      
+      - name: Publish Image
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: ${{ env.image }}
+          username: ${{ steps.gcloud.outputs.username }}
+          password: ${{ steps.gcloud.outputs.password }}
+          registry: ${{ env.registry }}
+  deployment:
+    name: Deploy image to cluster
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout  working branch
+        uses: actions/checkout@master
+      
+      - name: Set Cluster Credentials
+        run: |
+          echo "cluster_name=litecoin-test" >> $GITHUB_ENV
+          echo "cluster_region=us-central1" >> $GITHUB_ENV
+          echo "gcloud_project=hello-marco-k8s" >> $GITHUB_ENV
+      
+      - name: Install Kubectl
+        run: |
+          sudo apt-get install kubectl
+      
+      - name: Deploy to cluster
+        env:
+          GCLOUD_KEY: ${{ secrets.GCLOUD_KEY }}
+        run: |
+          echo "$GCLOUD_KEY" >> ${HOME}/gcloud.json
+          gcloud auth activate-service-account --key-file=${HOME}/gcloud.json
+          gcloud auth configure-docker
+          gcloud container clusters get-credentials \
+          ${{ env.cluster_name }} --project ${{ env.gcloud_project }} \
+          --region ${{env.cluster_region }}
+          
+          kubectl apply -f ./manifests/stateful-set.yaml

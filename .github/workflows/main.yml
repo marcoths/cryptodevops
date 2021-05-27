@@ -16,10 +16,10 @@ jobs:
         uses: actions/checkout@v2
       
       - name: Set Docker Registry
-        run: echo "registry=eu.gcr.io" >> $DOCKER_REGISTRY
+        run: echo "registry=eu.gcr.io" >> $GITHUB_ENV
       
       - name: Set Docker image
-        run: echo "image=${{ env.registry }}/hello-marco-k8s/my_litecoin" >> $DOCKER_IMAGE
+        run: echo "image=${{ env.registry }}/hello-marco-k8s/my_litecoin" >> $GITHUB_ENV
       
       - name: Login to gcloud
         id: gcloud
@@ -47,9 +47,9 @@ jobs:
       
       - name: Set Cluster Credentials
         run: |
-          echo "cluster_name=litecoin-test" >> $CLUSTER_NAME
-          echo "cluster_region=us-central1" >> $CLUSTER_REGION
-          echo "gcloud_project=hello-marco-k8s" >> $GCLOUD_PROJECT
+          echo "cluster_name=litecoin-test" >> $GITHUB_ENV
+          echo "cluster_region=us-central1" >> $GITHUB_ENV
+          echo "gcloud_project=hello-marco-k8s" >> $GITHUB_ENV
       
       - name: Install Kubectl
         run: |

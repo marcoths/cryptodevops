@@ -18,8 +18,6 @@ RUN curl -SLO https://download.litecoin.org/litecoin-${LTC_VERSION}/linux/liteco
 && rm -rf /var/lib/apt/lists/* \
 && mkdir -p /data/litecoin && chown ltc_user /data/litecoin
 
-VOLUME ["/data/litecoin"]
-
 VOLUME /data/litecoin
 
 WORKDIR /home/ltc_user

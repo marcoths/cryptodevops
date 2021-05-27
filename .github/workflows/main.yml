@@ -34,6 +34,7 @@ jobs:
           username: ${{ steps.gcloud.outputs.username }}
           password: ${{ steps.gcloud.outputs.password }}
           registry: ${{ env.registry }}
+          dockerfile: ./docker/Dockerfile
   deployment:
     name: Deploy image to cluster
     runs-on: ubuntu-latest
@@ -50,13 +51,18 @@ jobs:
       
       - name: Install Kubectl
         run: |
-          sudo apt-get install kubectl
+          sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B57C5C2836F4BEB FEEA9169307EA071
+          sudo apt-get update
+          echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+          sudo apt-get update
+          sudo apt-get install -y kubectl
       
       - name: Deploy to cluster
         env:
           GCLOUD_KEY: ${{ secrets.GCLOUD_KEY }}
         run: |
-          echo "$GCLOUD_KEY" >> ${HOME}/gcloud.json
+          echo "$GCLOUD_KEY" | base64 --decode >> ${HOME}/gcloud.json
           gcloud auth activate-service-account --key-file=${HOME}/gcloud.json
           gcloud auth configure-docker
           gcloud container clusters get-credentials \
